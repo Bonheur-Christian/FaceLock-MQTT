@@ -1,24 +1,25 @@
-� Smart Face Lock System - Distributed Vision Control
-Overview
+# 🔐 Smart Face Lock System – Distributed Vision Control
 
-This project implements a sophisticated smart face lock system that detects and tracks faces in real-time, controlling servo motors for access control. The system features a modern web dashboard and follows a distributed architecture with enhanced security features:
+The **Smart Face Lock System** is a distributed real-time access control solution that uses advanced face detection and recognition to control a servo-based locking mechanism. The system integrates computer vision, MQTT messaging, WebSocket communication, and a modern responsive dashboard to provide secure and scalable access management.
 
-🎯 Vision Node (PC): Advanced face detection with confidence scoring and real-time recognition
+The architecture separates responsibilities across multiple components to ensure security, modularity, and maintainability:
 
-🔧 ESP8266 (Edge Controller): Secure servo motor control with MQTT communication
+- **Vision Node (PC)** → Face detection & recognition
+- **ESP8266 (Edge Controller)** → Servo motor lock control
+- **Backend (PC)** → MQTT → WebSocket relay
+- **Web Dashboard** → Real-time monitoring interface
 
-🌐 Backend API (PC/Machine): Real-time WebSocket relay with enhanced dashboard integration
+The system supports **team-based topic isolation** for multi-team environments and includes enhanced security measures.
 
-💻 Modern Web Dashboard: Beautiful responsive interface with live tracking status and visual feedback
+---
 
-This system supports topic isolation for multi-team environments and includes enhanced security features for face recognition and access control.
+# 🏗️ System Architecture
 
-🏗️ System Architecture
 [ PC - Vision Node ]
 |
 | MQTT (vision/team02/movement)
 v
-[ PC - Backend (WebSocket relay) ]
+[ PC - Backend (WebSocket Relay) ]
 |
 | WebSocket (ws://localhost:9002)
 v
@@ -32,258 +33,232 @@ AND
 v
 [ Servo Motor - Lock Mechanism ]
 
-🚀 Golden Rule:
+### 🚀 Golden Rule
 
-Vision detects and recognizes. Devices communicate via MQTT. Browsers connect via WebSocket. Backend provides real-time relay with modern UI.
+- Vision detects and recognizes
+- Devices communicate via MQTT
+- Browsers connect via WebSocket
+- Backend handles secure real-time relay
 
-� Project Structure
+---
+
+# 📁 Project Structure
+
 face-lock-mqtt/
 │
 ├── vision-node/
-│ └── vision_node.py # Advanced face detection & MQTT publisher
+│ └── vision_node.py
 │
 ├── backend/
-│ └── backend.py # Enhanced MQTT → WebSocket relay
+│ └── backend.py
 │
 ├── esp8266/
-│ └── main.py # MicroPython servo controller
+│ └── main.py
 │
 ├── dashboard/
-│ └── index.html # Modern responsive dashboard
+│ └── index.html
 │
 └── README.md
 
-Dashboard Url
+---
 
-```http://157.173.101.159:8369/
+# 🌐 Dashboard URL
 
-```
+## 🔗 Live Dashboard
 
-⚙️ Setup Instructions (Local Deployment)
+http://157.173.101.159:8369/
 
-1. Install Dependencies
+Make sure:
 
-🐍 Python Requirements (PC Vision Node + Backend)
+- The Python HTTP server is running
+- Port **8369** is open
+- Backend WebSocket service is running on port **9002**
+
+---
+
+# ⚙️ Setup Instructions
+
+## 1️⃣ Install Python Dependencies (Vision Node + Backend)
 
 ```bash
 pip install opencv-python paho-mqtt websockets asyncio numpy
-```
 
-🔌 ESP8266 Setup
 
-Flash MicroPython using Thonny IDE or ampy tool.
 
-📡 MQTT Broker (Local Communication)
-
-Windows:
-Download Mosquitto from official site and run:
-
-```bash
+2️⃣ Install and Start MQTT Broker
+Windows
 mosquitto.exe -v
-```
 
-Linux:
-
-```bash
+Linux
 sudo apt update
 sudo apt install mosquitto mosquitto-clients
 sudo systemctl start mosquitto
-```
 
-2. Configure System
+3️⃣ ESP8266 Setup
 
-Each team uses a unique team ID (currently set to team02):
+Flash MicroPython using Thonny IDE or ampy
 
-```python
+Connect servo motor to GPIO5 (D1)
+
+Upload and run main.py
+
+Update broker IP address in the script
+
+⚙️ Configuration
+
+Each team must use a unique team ID:
+
 TEAM_ID = "team02"
 MQTT_TOPIC = f"vision/{TEAM_ID}/movement"
-```
 
-📋 Component Roles:
 
-- **Vision Node**: Publishes face detection and movement messages
-- **ESP8266**: Subscribes and controls servo motor for lock mechanism
-- **Backend**: Subscribes and pushes real-time updates to dashboard
-- **Dashboard**: Displays live status with modern UI
+Component Roles
 
-🔒 Security Note: Always use team-specific topics to prevent cross-team interference.
+Vision Node → Publishes face detection & movement
 
-3. Launch System
+ESP8266 → Subscribes and controls servo
 
-🚀 Start MQTT Broker:
+Backend → Relays MQTT → WebSocket
 
-```bash
+Dashboard → Displays live system status
+
+🔒 Always use team-specific topics to prevent cross-team interference.
+
+🚀 Launch Procedure
+Start MQTT Broker
 # Windows
 mosquitto.exe -v
 
 # Linux
 sudo systemctl start mosquitto
-```
 
-🌐 Start Backend WebSocket Relay:
-
-```bash
+Start Backend
 cd backend
 python backend.py
-```
 
-👁️ Run Vision Node:
-
-```bash
+Start Vision Node
 cd vision-node
 python vision_node.py
-```
 
-💻 Open Dashboard:
-Open `dashboard/index.html` in your web browser
+Start Dashboard Server
+python3 -m http.server 8369 --directory dashboard
 
-Ensure WebSocket connection:
 
-```javascript
+Then open in browser:
+
+http://157.173.101.159:8369/
+
+
+Ensure dashboard connects to:
+
 const ws = new WebSocket("ws://localhost:9002");
-```
 
-🔌 Flash ESP8266:
+💓 Advanced Features
+Heartbeat Monitoring
 
-- Update broker IP to your PC's local network IP
-- Connect servo to GPIO5 (D1) for lock mechanism
-- Upload and run main.py in MicroPython
+Topic:
 
-4. Advanced Features
-
-💓 Heartbeat Monitoring:
-Monitor system health via:
-
-```
 vision/team02/heartbeat
-```
+
 
 Example payload:
 
-```json
 {
   "node": "pc",
   "status": "ONLINE",
   "timestamp": 1730000000,
   "confidence": 0.95
 }
-```
 
-💡 Best Practices & Tips
+🔒 Security Considerations
 
-🔧 Technical Optimization:
+Use encrypted MQTT (TLS) in production
 
-- Use dead-zone thresholds to prevent servo jitter
-- Limit message rate to 10 Hz to avoid network flooding
-- Implement smooth servo movement (2-5 degree increments)
-- Always test locally before mechanical deployment
+Implement broker authentication
 
-🔒 Security Considerations:
+Monitor logs for unauthorized access
 
-- Use encrypted MQTT connections in production
-- Implement proper authentication for team access
-- Regularly update face recognition models
-- Monitor system logs for unauthorized access attempts
+Keep strict recognition thresholds
 
-🎨 UI/UX Tips:
+Avoid direct PC ↔ ESP communication
 
-- Dashboard automatically adapts to different screen sizes
-- Color-coded status indicators for quick recognition
-- Real-time confidence scoring display
-- Smooth animations and transitions
+Prevent Dashboard ↔ MQTT direct access
+
+Always route traffic through Backend
+
+⚙️ Technical Optimization
+
+Use dead-zone threshold to prevent servo jitter
+
+Limit message rate to 10Hz
+
+Smooth servo movement (2–5° increments)
+
+Test locally before deployment
 
 📦 System Requirements
+Software
 
-🐍 Python 3.10+
+Python 3.10+
 
-- OpenCV (opencv-python)
-- Paho-MQTT (paho-mqtt)
-- Websockets (websockets)
-- NumPy (numpy)
+OpenCV
 
-🔌 Hardware Requirements
+Paho-MQTT
 
-- ESP8266 Microcontroller
-- Servo Motor (SG90 or similar)
-- USB Camera or Webcam
-- MQTT Broker (Mosquitto recommended)
+Websockets
 
-💻 Software Requirements
+NumPy
 
-- MicroPython on ESP8266
-- Mosquitto MQTT Broker
-- Modern Web Browser (Chrome, Firefox, Safari)
+Mosquitto MQTT Broker
+
+MicroPython (ESP8266)
+
+Modern Web Browser
+
+Hardware
+
+ESP8266 Microcontroller
+
+SG90 Servo Motor
+
+USB Camera / Webcam
 
 🎯 Key Features
 
-🚀 Advanced Face Recognition
+Real-time face detection with confidence scoring
 
-- Real-time face detection with confidence scoring
-- Multi-person tracking capabilities
-- Unknown person detection and logging
-- Enhanced security with strict recognition thresholds
+Unknown person detection
 
-🏗️ Distributed Architecture
+Multi-person tracking
 
-- Modular component design
-- Topic isolation for multi-team environments
-- Scalable and maintainable codebase
-- Real-time communication via MQTT/WebSocket
+Distributed modular architecture
 
-🌐 Modern Dashboard
+Topic isolation
 
-- Responsive design with glass-morphism UI
-- Real-time status updates with animations
-- Color-coded connection states
-- Interactive hover effects and transitions
+Modern responsive dashboard
 
-🔒 Security Features
-
-- Team-based access control
-- Encrypted communication options
-- Unknown person alerting
-- Comprehensive logging system
-
-⚙️ Operational Modes
-
-- Local-only deployment (no external dependencies)
-- Ready for open-loop testing (Phase 1)
-- Prepared for closed-loop tracking (Phase 2)
+Team-based access control
 
 🏁 Operational Workflow
+Phase 1 – Open Loop Testing
 
-📹 **Phase 1 - Open Loop Testing:**
-PC camera detects face → publishes MQTT → ESP controls servo → Backend updates dashboard
+Camera → MQTT → ESP8266 → Servo → Dashboard Update
 
-🔄 **Phase 2 - Closed Loop Tracking:**
-Camera mounted on servo → Real-time tracking feedback → Automatic face following
+Phase 2 – Closed Loop Tracking
 
-⚡ **Real-time Flow:**
-Face Detection → Recognition → Decision Making → Servo Control → Dashboard Update
+Camera mounted on servo → Real-time tracking → Automatic face following
 
-🔗 **Important Notes:**
+Real-Time Flow
 
-- Avoid direct PC ↔ ESP connections
-- Prevent Dashboard ↔ MQTT direct access
-- Always route through Backend for security
-- Monitor system health via heartbeat messages
+Face Detection → Recognition → Decision → Servo Control → Dashboard Update
 
-🔗 Additional Resources
+⚠️ Important Notes
 
-📚 Documentation & Research
+Do NOT allow direct PC ↔ ESP connection
 
-- Gabriel Baziramwabo ResearchGate Profile
-- BenaxMedia YouTube Channel (Tutorials & Demos)
+Do NOT allow direct Dashboard ↔ MQTT access
 
-🛠️ Technical Support
+Always use Backend relay for security
 
-- MQTT Protocol Documentation
-- ESP8266 MicroPython Guide
-- OpenCV Face Recognition Documentation
-- WebSocket API Reference
-
-🌟 Community & Updates
-
-- GitHub Repository for latest updates
-- Issue tracking and feature requests
-- Community forums and discussions
+Monitor system health via heartbeat messages
+```
